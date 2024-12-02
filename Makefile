@@ -1,14 +1,14 @@
 build:
-	docker build -t dudevpn_bot_image .
+	docker build -t skymount_image .
 run:
-	docker run -it -d --network my_network -v /var/run/docker.sock:/var/run/docker.sock --env-file .env --restart=unless-stopped --name dudevpn_bot dudevpn_bot_image
+	docker run -it -d --env-file .env --restart=unless-stopped --name skymount_bot skymount_image
 stop:
-	docker stop dudevpn_bot
+	docker stop skymount_bot
 attach:
-	docker attach dudevpn_bot
+	docker attach skymount_bot
 dell:
-	docker rm dudevpn_bot
-	docker image remove dudevpn_bot_image
+	docker rm skymount_bot
+	docker image remove skymount_image
 update:
 	make stop
 	make dell
