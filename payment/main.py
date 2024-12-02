@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from yoomoney import Client, Quickpay
+from yoomoney import Client, Quickpay, Authorize
 from decouple import config
 
 
@@ -37,7 +37,7 @@ def payment(is_sum: int, is_label: str) -> str | tuple:
     return quickpay.redirected_url, quickpay.label
 
 
-history = client.operation_history()
+
 
 # for operation in history.operations:
 #     print()
@@ -53,8 +53,23 @@ history = client.operation_history()
 
 
 def check_payment(is_label: str):
+    history = client.operation_history()
     for operation in history.operations:
         if operation.label == is_label and operation.status.lower() == 'success':
             return int(operation.amount)
     return False
 
+
+def authorize():
+    Authorize(
+        client_id=input('client_id: '),
+        redirect_uri=input('redirect_uri: '),
+        client_secret=input('client_secret: '),
+        scope=['account-info',
+               'operation-history',
+               'operation-details',
+               'incoming-transfers',
+               'payment-p2p',
+               'payment-shop'
+               ]
+    )

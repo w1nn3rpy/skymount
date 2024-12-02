@@ -1,21 +1,34 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from database.db_users import get_user_info
 
-def main_inline_kb(res: bool):
-    kb_list = [
-        [InlineKeyboardButton(text='✌️ О нашем VPN', callback_data='about'),
-         InlineKeyboardButton(text='🆘 Техподдержка', url='tg://resolve?domain=w1nn3r1337')],
-        [InlineKeyboardButton(text="🔥 Ввести промокод", callback_data='promo_step_2'),
-         InlineKeyboardButton(text='👤 Профиль', callback_data='profile')],
-        [InlineKeyboardButton(text="🛒 Купить VPN", callback_data='buy')]
-    ]
-    if res is True:
+
+async def main_inline_kb(user_id):
+    tg_id, username, is_admin, is_subscriber, vpn_key, label, start_subscribe, end_subscribe, balance, invited_by, trial_used, send_ref = await get_user_info(user_id)
+
+    if not is_subscriber and not trial_used:
+        kb_list = [
+            [InlineKeyboardButton(text='⚡️Попробовать бесплатно (2 дня)',
+                                  callback_data='trial')],
+            [InlineKeyboardButton(text="🛒 Купить VPN", callback_data='buy')],
+            [InlineKeyboardButton(text="🔥 Ввести промокод", callback_data='promo_step_2')]
+        ]
+    else:
+
+        kb_list = [
+            [InlineKeyboardButton(text="🚀 Продлить VPN" if is_subscriber else "🛒 Купить VPN",
+                                  callback_data='buy')],
+            [InlineKeyboardButton(text='👤 Профиль', callback_data='profile')]
+        ]
+
+    if is_admin:
         kb_list.append([InlineKeyboardButton(text='🔥 Админка', callback_data='adminka')])
     return InlineKeyboardMarkup(inline_keyboard=kb_list)
 
 
 def about_buttons():
     button = [
-        [InlineKeyboardButton(text='📜 Новости и конкурсы 🎉', url='tg://resolve?domain=Dude_VPN')],
+        [InlineKeyboardButton(text='🆘 Поддержка', url='tg://resolve?domain=danilserge27')],
+        [InlineKeyboardButton(text='👤 Профиль', callback_data='profile')],
         [InlineKeyboardButton(text="🛒 Купить VPN", callback_data='buy')],
         [InlineKeyboardButton(text='🏠 Домой', callback_data='get_home')]
     ]
@@ -25,6 +38,7 @@ def about_buttons():
 def profile_kb():
     inline_kb_profile = [
         [InlineKeyboardButton(text='🔍 В каталог', callback_data='buy')],
+        [InlineKeyboardButton(text='👥 Реферальная программа', callback_data='referral_system')],
         [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_profile)
@@ -32,7 +46,7 @@ def profile_kb():
 
 def server_select():
     inline_kb_server = [
-        [InlineKeyboardButton(text='🇳🇱 Нидерланды|250 mB/s', callback_data='netherlands_server')],
+        [InlineKeyboardButton(text='🇳🇱 Нидерланды', callback_data='netherlands_server')],
         [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_server)
@@ -40,9 +54,7 @@ def server_select():
 
 def select_time_kb():
     inline_kb_buy = [
-        [InlineKeyboardButton(text='1 Месяц | 150р', callback_data='one_month')],
-        [InlineKeyboardButton(text='3 Месяца | 400р', callback_data='three_months')],
-        [InlineKeyboardButton(text='6 Месяцев | 650р', callback_data='six_months')],
+        [InlineKeyboardButton(text='1 Месяц | 100р', callback_data='one_month')],
         [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_buy)
@@ -50,8 +62,7 @@ def select_time_kb():
 
 def select_payment_system(sum_of):
     inline_kb_systems = [
-        [InlineKeyboardButton(text='ЮMoney (возможна комиссия)', callback_data=f'yoomoney_{str(sum_of)}')],
-        [InlineKeyboardButton(text='СБП (Комиссия 0%)', callback_data=f'sbp_{str(sum_of)}')],
+        [InlineKeyboardButton(text='ЮMoney', callback_data=f'yoomoney_{str(sum_of)}')],
         [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_systems)
@@ -68,7 +79,7 @@ def accept_or_not(pay_system, sum_of):
 def admin_actions():
     inline_kb = [
         [InlineKeyboardButton(text='Добавить/Удалить промокод', callback_data='add_del_promo_next_step')],
-        [InlineKeyboardButton(text='Добавить сервер', callback_data='add_server')],
+        [InlineKeyboardButton(text='Добавить сервер (в разработке)', callback_data='add_server')],
         [InlineKeyboardButton(text='Проверить сервера', callback_data='check_server')],
         [InlineKeyboardButton(text='Рассылка сообщения', callback_data='spamming')],
         [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
@@ -118,7 +129,8 @@ def apps():
 
 def guide():
     inline_kb = [
-        [InlineKeyboardButton(text='Прочитать', url='https://telegra.ph/Nastrojka-VPN-08-03')]
+        [InlineKeyboardButton(text='Прочитать', url='https://telegra.ph/Nastrojka-VPN-08-03')],
+        [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb)
 
@@ -128,7 +140,7 @@ def payed(payment_system, price):
         [InlineKeyboardButton(text='✅ Оплатил(-а)',
                               callback_data=f'confirm-pay_{payment_system}_{price}')],
         [InlineKeyboardButton(text='❌ Передумал(-а) оплачивать', callback_data='cancel_pay')],
-        [InlineKeyboardButton(text='🆘 Сообщить о проблеме', url='tg://resolve?domain=w1nn3r1337')],
+        [InlineKeyboardButton(text='🆘 Сообщить о проблеме', url='tg://resolve?domain=danilserge27')],
 
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb)
@@ -137,17 +149,6 @@ def payed(payment_system, price):
 def cancel_fsm_kb():
     inline_kb = [
         [InlineKeyboardButton(text='Отменить ввод и вернуться в меню', callback_data='cancel_FSM')]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=inline_kb)
-
-
-def accept_or_not_check(user_id):
-    inline_kb = [
-        [InlineKeyboardButton(text='✅ Подтвердить (1м)', callback_data=f'accept-check_4_{user_id}')],
-        [InlineKeyboardButton(text='✅ Подтвердить (3м)', callback_data=f'accept-check_12_{user_id}')],
-        [InlineKeyboardButton(text='✅ Подтвердить (6м)', callback_data=f'accept-check_24_{user_id}')],
-
-        [InlineKeyboardButton(text='❌ Отклонить', callback_data=f'decline-check_{user_id}')]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb)
 
@@ -166,4 +167,17 @@ def target_for_spam():
         [InlineKeyboardButton(text='❌ Отменить', callback_data='cancel_FSM')]
     ]
 
+    return InlineKeyboardMarkup(inline_keyboard=inline_kb)
+
+def return_home():
+    inline_kb = [
+        [InlineKeyboardButton(text='🏠 На главную', callback_data='get_home')]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=inline_kb)
+
+def add_server():
+    inline_kb = [
+        [InlineKeyboardButton(text='Добавить сервер', callback_data='setup_new_server')],
+        [InlineKeyboardButton(text='❌ Отменить', callback_data='cancel_FSM')]
+    ]
     return InlineKeyboardMarkup(inline_keyboard=inline_kb)

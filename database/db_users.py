@@ -1,110 +1,11 @@
-import asyncpg
-from decouple import config
-
 from datetime import datetime, timedelta
 
+import asyncpg
+from decouple import config
 
 from work_time.time_func import *
 from create_bot import bot
 from outline.main import get_key_id_from_url, delete_key
-
-
-async def create_table_if_not_exist():
-    con = None
-    try:
-        con = await asyncpg.connect(dsn=config('DATABASE_URL'))
-        tables = {
-            'users': '''
-            CREATE TABLE users(
-                user_id INT8 PRIMARY KEY,
-                name TEXT,
-                is_admin bool,
-                is_subscriber bool,
-                vpn_key TEXT,
-                payment_label TEXT,
-                start_subscribe date,
-                end_subscribe date,
-                balance INT4,
-                invited_by_id INT8,
-                trial_used bool)
-            ''',
-
-            'promocodes': '''
-            CREATE TABLE promocodes(
-                promo TEXT,
-                time INT4)
-            ''',
-
-            'servers': '''
-            CREATE TABLE servers(
-                server_id INT4,
-                country_id INT2,
-                server_ip VARCHAR,
-                server_password VARCHAR,
-                outline_url VARCHAR,
-                outline_cert VARCHAR,
-                is_active bool,
-                max_users INT4,
-                vless_port INT4,
-                manager_port INT4
-                )
-                
-            ''',
-            'countries': '''
-            CREATE TABLE countries(
-            )
-            '''
-        }
-
-        for table_name, create_sql in tables.items():
-            table_exists = await con.fetchval(f"""
-            SELECT EXISTS (
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_schema = 'public'
-            AND table_name = $1
-                )
-            """, table_name)
-            if not table_exists:
-                await con.execute(create_sql)
-                print(f'Table {table_name} successfully created!')
-            else:
-                print(f'Table {table_name} already exists')
-    finally:
-        if con:
-            await con.close()
-
-
-async def add_promo(code: str, time: int):
-    con = None
-    try:
-        con = await asyncpg.connect(dsn=config('DATABASE_URL'))
-        query = f'''
-            INSERT INTO promocodes(promo, time) 
-            VALUES ($1, $2)
-            '''
-
-        await con.execute(query, code, time)
-
-    finally:
-        if con:
-            await con.close()
-
-
-async def del_promo(code: str):
-    con = None
-    try:
-        con = await asyncpg.connect(dsn=config('DATABASE_URL'))
-        query = '''
-            DELETE FROM promocodes 
-            WHERE promo = $1
-            '''
-
-        await con.execute(query, code)
-
-    finally:
-        if con:
-            await con.close()
 
 
 async def new_user(user_id,
@@ -420,25 +321,6 @@ async def get_all_ids():
         if con:
             await con.close()
 
-# async def check_referer(user_id):
-#     con = None
-#     try:
-#         con = await asyncpg.connect(dsn=config('DATABASE_URL'))
-#         query = """
-#         SELECT invited_by_id
-#         FROM users
-#         WHERE user_id = $1
-#         """, user_id
-#
-#         referer = await con.fetch(query)
-#         return referer
-#
-#     except Exception as e:
-#         print(e)
-#
-#     finally:
-#         if con:
-#             await con.close()
 
 async def add_balance_for_refer(to_user_id, by_user_id):
     con = None
