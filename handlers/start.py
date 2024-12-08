@@ -92,7 +92,7 @@ async def confirm_pay(call, amount_days):
                                             reply_markup=return_home())
 
         else:
-            key = create_new_key(call.from_user.id, call.from_user.username).access_url
+            key = create_new_key(str(call.from_user.id), call.from_user.username).access_url
             await set_user_vpn_key(call.from_user.id, key)
             await call.message.answer_photo(config('CONGRATS'),
                 f'Ваш ключ:\n <pre language="c++">{key}</pre>\n'
@@ -255,7 +255,10 @@ async def to_homepage_callback(call: CallbackQuery):
 @start_router.callback_query(F.data == 'trial')
 async def get_trial(call: CallbackQuery):
     await del_call_kb(call)
-    await call.message.answer('Мы отличаемся тем, что даём бесплатно опробовать наш сервис '
+    if await get_user_info(call.from_user.id, 10):
+        await call.message.answer('Извините, но вы уже использовали пробный период.')
+    else:
+        await call.message.answer('Мы отличаемся тем, что даём бесплатно опробовать наш сервис '
                               'в течение двух дней!\n'
                               'Жми кнопку и наслаждайся свободным интернетом!', reply_markup=get_key_kb(2))
 
@@ -424,8 +427,40 @@ async def nothing(message: Message):
                                else message.from_user.username),
                                reply_markup=await main_inline_kb(message.from_user.id))
 
-@start_router.message(F.photo)
-async def get_photo_id(message: Message):
-    photo = max(message.photo, key=lambda x: x.height)
-    file_id = photo.file_id
-    await message.answer(f'{file_id}')
+# @start_router.message(F.photo)
+# async def get_photo_id(message: Message):
+#     photo = max(message.photo, key=lambda x: x.height)
+#     file_id = photo.file_id
+#     await message.answer(f'{file_id}')
+#
+# @start_router.callback_query(F.data == 'fakebuy')
+# async def fakebuy(call: CallbackQuery):
+#     check_old_key = await get_user_info(call.from_user.id, 4)
+#
+#     try:
+#         if check_old_key:
+#             await extension_subscribe(call.from_user.id, 31)
+#             await call.message.answer_photo(config('CONGRATS'), 'Ваша подписка продлена!\n'
+#                                                                 'Спасибо, что пользуетесь нашим сервисом.',
+#                                             reply_markup=return_home())
+#
+#         else:
+#             key = create_new_key(str(call.from_user.id), call.from_user.username).access_url
+#             await set_user_vpn_key(call.from_user.id, key)
+#             await call.message.answer_photo(config('CONGRATS'),
+#                 f'Ваш ключ:\n <pre language="c++">{key}</pre>\n'
+#                 f'\nВыберите свою платформу для скачивания приложения',
+#                 reply_markup=apps())
+#             await call.message.answer('Инструкция по настройке', reply_markup=guide())
+#
+#             if key == 2:
+#                 await set_for_trial_subscribe(call.from_user.id)
+#             else:
+#                 await set_for_subscribe(call.from_user.id, 31)
+#
+#     except Exception as e:
+#         print(str(e))
+#
+# @start_router.callback_query(F.data == 'end_sub_debug')
+# async def check_end_subscribe_debug(call: CallbackQuery):
+#     await debug_end_subscribe()
