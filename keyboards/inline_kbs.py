@@ -21,7 +21,7 @@ async def main_inline_kb(user_id):
         ]
 
     if is_admin:
-        kb_list.extend(([InlineKeyboardButton(text='🔥 Админка', callback_data='adminka')]))
+        kb_list.extend([InlineKeyboardButton(text='🔥 Админка', callback_data='adminka')])
                         # , [InlineKeyboardButton(text='Типа купил', callback_data='fakebuy')],
                         # [InlineKeyboardButton(text='Подписка закончилась', callback_data='end_sub_debug')]))
     return InlineKeyboardMarkup(inline_keyboard=kb_list)
